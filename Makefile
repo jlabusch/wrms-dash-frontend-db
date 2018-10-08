@@ -30,7 +30,6 @@ start: network
         --env POSTGRES_PASSWORD_FILE=/secrets/pgpass \
         --env POSTGRES_DB=dashboard \
         --env PGDATA=/var/lib/postgresql/data/pgdata \
-        --volume /etc/localtime:/etc/localtime:ro \
         --volume $(DB_VOL):/var/log/postgresql/data/pgdata \
         --volume $(CONFIG_VOL):/secrets:ro \
         --network $(NETWORK) \
