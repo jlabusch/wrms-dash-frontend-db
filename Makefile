@@ -10,12 +10,12 @@ build:
 	# create volumes if they don't exist
 	$(DOCKER) volume ls | grep -q $(DB_VOL) || $(DOCKER) volume create $(DB_VOL)
 	$(DOCKER) volume ls | grep -q $(CONFIG_VOL) || $(DOCKER) volume create $(CONFIG_VOL)
-	# add a new random DB password to the config volume
+	# if needed, add a new random DB password to the config volume...
 	$(DOCKER) images | grep -q alpine || $(DOCKER) pull alpine
 	openssl rand -base64 32 | tr '/' '#' > pgpass && \
-    CONTAINER=$$($(DOCKER) run -d -t -e TERM=xterm --rm -v $(CONFIG_VOL):/opt/ alpine top) && \
-    $(DOCKER) cp ./pgpass $$CONTAINER:/opt/ && \
-    $(DOCKER) stop $$CONTAINER
+	CONTAINER=$$($(DOCKER) run -d -t -e TERM=xterm --rm -v $(CONFIG_VOL):/opt/ alpine top) && \
+	( $(DOCKER) exec -it $$CONTAINER ls /opt/pgpass || $(DOCKER) cp ./pgpass $$CONTAINER:/opt/ ) && \
+	$(DOCKER) stop $$CONTAINER || :
 	@rm -f pgpass
 
 network:
