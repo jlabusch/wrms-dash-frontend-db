@@ -17,7 +17,7 @@ build: deps
 	$(BUILD) volume create $(DB_VOL)
 	$(BUILD) volume create $(CONFIG_VOL)
 	@mkdir -p secret
-	@$(BUILD) cp alpine $(CONFIG_VOL) $$PWD/secret /vol0/pgpass /vol1/
+	@$(BUILD) cp alpine $(CONFIG_VOL) $$PWD/secret /vol0/pgpass /vol1/ || :
 	@test -f ./secret/pgpass || \
     openssl rand -base64 32 | tr '/' '#' > ./secret/pgpass && \
 	$(BUILD) cp alpine $$PWD/secret/ $(CONFIG_VOL) /vol0/pgpass /vol1/
