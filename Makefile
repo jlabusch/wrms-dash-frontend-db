@@ -1,26 +1,30 @@
-.PHONY: build network start stop clean
+.PHONY: deps build network start stop clean
 
 DOCKER=docker
 NAME=wrms-dash-frontend-db
 CONFIG_VOL=wrms-dash-config-vol
 DB_VOL=wrms-dash-db-vol
 NETWORK=wrms-dash-net
+BUILD=$(shell ls ./wrms-dash-build-funcs/build.sh 2>/dev/null || ls ../wrms-dash-build-funcs/build.sh 2>/dev/null)
+SHELL:=/bin/bash
 
-build:
-	# create volumes if they don't exist
-	$(DOCKER) volume ls | grep -q $(DB_VOL) || $(DOCKER) volume create $(DB_VOL)
-	$(DOCKER) volume ls | grep -q $(CONFIG_VOL) || $(DOCKER) volume create $(CONFIG_VOL)
-	# if needed, add a new random DB password to the config volume...
-	$(DOCKER) images | grep -q alpine || $(DOCKER) pull alpine
-	openssl rand -base64 32 | tr '/' '#' > pgpass && \
-	CONTAINER=$$($(DOCKER) run -d -t -e TERM=xterm --rm -v $(CONFIG_VOL):/opt/ alpine top) && \
-	( $(DOCKER) exec -it $$CONTAINER ls /opt/pgpass || $(DOCKER) cp ./pgpass $$CONTAINER:/opt/ ) && \
-	$(DOCKER) stop $$CONTAINER || :
+deps:
+	@test -n "$(BUILD)" || (echo 'wrms-dash-build-funcs not found; do you need "git submodule update --init"?'; false)
+	@echo "Using $(BUILD)"
+
+build: deps
+	$(BUILD) image pull-if-not-exists alpine
+	$(BUILD) volume create $(DB_VOL)
+	$(BUILD) volume create $(CONFIG_VOL)
+	openssl rand -base64 32 | tr '/' '#' > pgpass
+	$(BUILD) cp alpine $$PWD $(CONFIG_VOL) /vol0/pgpass /vol1/
 	@rm -f pgpass
 
 network:
-	$(DOCKER) network list | grep -q $(NETWORK) || $(DOCKER) network create $(NETWORK)
+	$(BUILD) network create $(NETWORK)
 
+# This is the only component allowed to use volumes, because it isn't
+# deployed on ECS in prod. (We just use RDS.)
 start: network
 	$(DOCKER) run \
         --name $(NAME) \
