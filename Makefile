@@ -16,9 +16,12 @@ build: deps
 	$(BUILD) image pull-if-not-exists alpine
 	$(BUILD) volume create $(DB_VOL)
 	$(BUILD) volume create $(CONFIG_VOL)
-	openssl rand -base64 32 | tr '/' '#' > pgpass
-	$(BUILD) cp alpine $$PWD $(CONFIG_VOL) /vol0/pgpass /vol1/
-	@rm -f pgpass
+	@mkdir -p secret
+	@$(BUILD) cp alpine $(CONFIG_VOL) $$PWD/secret /vol0/pgpass /vol1/
+	@test -f ./secret/pgpass || \
+    openssl rand -base64 32 | tr '/' '#' > ./secret/pgpass && \
+	$(BUILD) cp alpine $$PWD/secret/ $(CONFIG_VOL) /vol0/pgpass /vol1/
+	@rm -fr secret
 
 network:
 	$(BUILD) network create $(NETWORK)
