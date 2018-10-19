@@ -41,5 +41,5 @@ stop:
 	$(DOCKER) stop $(NAME)
 
 clean:
-	@echo "If you really want to do this, run \"$(DOCKER) volume rm $(DB_VOL)\""
+	@echo "If you really want to do this, run \"$(DOCKER) volume rm $(DB_VOL)\" and \"rm ./pgpass\""
 
