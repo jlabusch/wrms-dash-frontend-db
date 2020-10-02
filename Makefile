@@ -34,7 +34,7 @@ start: network
         --volume $(DB_VOL):/var/lib/postgresql/data/pgdata \
         --network $(NETWORK) \
         --rm \
-        postgres:9.6
+        postgres:12.4
 	$(DOCKER) logs -f $(NAME) &
 
 stop:
